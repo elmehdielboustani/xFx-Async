@@ -126,13 +126,13 @@ function main() {
     );
 
     question('Please enter your choice: ').then((choice) => {
-        const choice = parseInt(choice);
+        const parsedchoice = parseInt(choice);
 
-        if (choice === 1) {
+        if (parsedchoice === 1) {
             browseFiles();
-        } else if (choice === 2) {
+        } else if (parsedchoice === 2) {
             renameFile();
-        } else if (choice === 3) {
+        } else if (parsedchoice === 3) {
             question('Please enter the path of the file to download (SharedFolder/...): ')
                 .then((path) => {
                     downloadFile(path);
@@ -140,7 +140,7 @@ function main() {
                 .catch((error) => {
                     console.error(`Error processing user input: ${error.message}`);
                 });
-        } else if (choice === 4) {
+        } else if (parsedchoice === 4) {
             question('Please enter the path where you would like to upload to (SharedFolder/...): ')
                 .then((targetPath) => {
                     question('Please enter the path of the file to upload (JSConsumerFolder/...): ')
@@ -149,7 +149,7 @@ function main() {
                         })
                 }).catch((error) => { console.error(`Error processing user input: ${error.message}`); });
 
-        } else if (choice === 5) {
+        } else if (parsedchoice === 5) {
             question('Please enter the path of the file to delete (SharedFolder/...): ')
                 .then((path) => {
                     deleteFile(path);
@@ -157,7 +157,7 @@ function main() {
                 .catch((error) => {
                     console.error(`Error processing user input: ${error.message}`);
                 });
-        } else if (choice === 6) {
+        } else if (parsedchoice === 6) {
             console.log('Exiting... Thank you!');
             rl.close();
         } else {
