@@ -20,7 +20,7 @@ const question = (prompt) => {
 
 const browseFiles = async () => {
     return question(
-        'Please enter the path of the root folder to browse all the files including sub-folders (SharedFolder/) or any specific sub-folder (SharedFolder/...): '
+        'Please enter the path of the root folder to browse all the files including sub-folders (by simply pressing enter or SharedFolder/) or any specific sub-folder (SharedFolder/...): '
     )
         .then((path) => xfxInstancePromise.then((xfxInstance) => xfxInstance.browseFiles(path)))
         .then((response) => {
@@ -28,7 +28,7 @@ const browseFiles = async () => {
             main();
         })
         .catch((ex) => {
-            console.error('Exception occurred when calling .browseFiles(). ', ex);
+            console.error(`Exception occurred when calling .browseFiles(). ${ex}`);
             main();
         })
         .finally(() => {
@@ -38,16 +38,19 @@ const browseFiles = async () => {
 
 const renameFile = async () => {
     return question('Please enter the path of the file to rename (SharedFolder/...): ')
-        .then((path) => question('Please enter the new name of the file: ').then((newName) => [path, newName]))
+        .then((path) => question('Please enter the new name of the file (name.txt for example): ').then((newName) => [path, newName]))
         .then(([path, newName]) => xfxInstancePromise.then((xfxInstance) => xfxInstance.renameFile(path, newName)))
         .then((response) => {
             console.log(`.renameFile() was called successfully. The response: ${response}`);
             main();
         })
         .catch((ex) => {
-            console.error('Exception occurred when calling .renameFile(). ', ex);
+            console.error(`Exception occurred when calling .renameFile(). ${ex}`);
             main();
         })
+        .finally(() => {
+            rl.close();
+        });
 };
 
 const downloadFile = async (path) => {
@@ -73,6 +76,9 @@ const downloadFile = async (path) => {
             console.error(`Error downloading or saving file: ${error.message}`);
             main();
         })
+        .finally(() => {
+            rl.close();
+        });
 };
 
 const uploadFile = async (targetPath, localPath) => {
@@ -92,12 +98,11 @@ const uploadFile = async (targetPath, localPath) => {
     })
         .then((response) => {
             console.log(
-                `.uploadFile() was called successfully. The response: ${response}`
-            );
+                `.uploadFile() was called successfully. The response: ${response}`);
             main();
         })
         .catch((ex) => {
-            console.error("Exception occurred when calling .uploadFile(). ", ex);
+            console.error(`Exception occurred when calling .uploadFile(). ${ex}`);
             main();
         });
 };
@@ -109,7 +114,7 @@ const deleteFile = async (path) => {
             main();
         })
         .catch((ex) => {
-            console.error('Exception occurred when calling .deleteFile(). ', ex);
+            console.error(`Exception occurred when calling .deleteFile(). ${ex}`);
             main();
         })
 };
@@ -117,17 +122,17 @@ const deleteFile = async (path) => {
 
 function main() {
     console.log(
-        '1. Browse remote shared folder\n2. Rename remote shared file or sub-folder \n3. Download remote shared file\n4. Upload local file to remote shared folder\n5. Delete shared remote file\n6. Exit'
+        '1. Browse remote shared folder asynchronously\n2. Rename remote shared file or sub-folder asynchronously \n3. Download remote shared file asynchronously\n4. Upload local file to remote shared folder asynchronously\n5. Delete shared remote file asynchronously\n6. Exit'
     );
 
     question('Please enter your choice: ').then((choice) => {
-        const parsedChoice = parseInt(choice);
+        const choice = parseInt(choice);
 
-        if (parsedChoice === 1) {
+        if (choice === 1) {
             browseFiles();
-        } else if (parsedChoice === 2) {
+        } else if (choice === 2) {
             renameFile();
-        } else if (parsedChoice === 3) {
+        } else if (choice === 3) {
             question('Please enter the path of the file to download (SharedFolder/...): ')
                 .then((path) => {
                     downloadFile(path);
@@ -135,7 +140,7 @@ function main() {
                 .catch((error) => {
                     console.error(`Error processing user input: ${error.message}`);
                 });
-        } else if (parsedChoice === 4) {
+        } else if (choice === 4) {
             question('Please enter the path where you would like to upload to (SharedFolder/...): ')
                 .then((targetPath) => {
                     question('Please enter the path of the file to upload (JSConsumerFolder/...): ')
@@ -144,7 +149,7 @@ function main() {
                         })
                 }).catch((error) => { console.error(`Error processing user input: ${error.message}`); });
 
-        } else if (parsedChoice === 5) {
+        } else if (choice === 5) {
             question('Please enter the path of the file to delete (SharedFolder/...): ')
                 .then((path) => {
                     deleteFile(path);
@@ -152,7 +157,7 @@ function main() {
                 .catch((error) => {
                     console.error(`Error processing user input: ${error.message}`);
                 });
-        } else if (parsedChoice === 6) {
+        } else if (choice === 6) {
             console.log('Exiting... Thank you!');
             rl.close();
         } else {
@@ -163,6 +168,8 @@ function main() {
 };
 
 main();
+
+
 
 
 
