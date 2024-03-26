@@ -1,176 +1,79 @@
 import OpenApiDefinition from './open_api_definition/src/index.js';
 import * as fs from 'fs';
-import readline from 'readline';
 
 
+// Instantiating the XfxApi class
 const xfxInstancePromise = Promise.resolve(new OpenApiDefinition.XfxApi());
 
-const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout,
-});
+const browseFiles = (path) => {
 
-const question = (prompt) => {
-    return new Promise((resolve) => {
-        rl.question(prompt, (answer) => {
-            resolve(answer);
-        });
-    });
-};
-
-const browseFiles = async () => {
-    return question(
-        'Please enter the path of the root folder to browse all the files including sub-folders (by simply pressing enter or SharedFolder/) or any specific sub-folder (SharedFolder/...): '
-    )
-        .then((path) => xfxInstancePromise.then((xfxInstance) => xfxInstance.browseFiles(path)))
+    xfxInstancePromise.then((xfxInstance) => xfxInstance.browseFiles(path))
         .then((response) => {
             console.log(`.browseFiles() was called successfully. The list of files: ${response}`);
-            main();
         })
         .catch((ex) => {
-            console.error(`Exception occurred when calling .browseFiles(). ${ex}`);
-            main();
-        })
-        .finally(() => {
-            rl.close();
+            console.error('Exception occurred when calling .browseFiles(). ', ex);
         });
 };
 
-const renameFile = async () => {
-    return question('Please enter the path of the file to rename (SharedFolder/...): ')
-        .then((path) => question('Please enter the new name of the file (name.txt for example): ').then((newName) => [path, newName]))
-        .then(([path, newName]) => xfxInstancePromise.then((xfxInstance) => xfxInstance.renameFile(path, newName)))
+const renameFile = (path, newName) => {
+
+    xfxInstancePromise.then((xfxInstance) => xfxInstance.renameFile(path, newName))
         .then((response) => {
             console.log(`.renameFile() was called successfully. The response: ${response}`);
-            main();
         })
         .catch((ex) => {
-            console.error(`Exception occurred when calling .renameFile(). ${ex}`);
-            main();
-        })
-        .finally(() => {
-            rl.close();
+            console.error('Exception occurred when calling .renameFile(). ', ex);
         });
 };
 
-const downloadFile = async (path) => {
+const downloadFile = (path) => {
 
     xfxInstancePromise.then((xfxInstance) => xfxInstance.downloadFile(path))
         .then((response) => {
-            const fileName = path.split('/').pop();
-            return new Promise((resolve, reject) => {
-                fs.writeFile("JSConsumerFolder/" + fileName, response, (err) => {
-                    if (err) {
-                        reject(err);
-                    } else {
-                        resolve(`File saved successfully under: JSConsumerFolder/${fileName}`);
-                    }
-                });
+            const fileName = path.split('/').pop(); // Extracting the file name from the path
+            fs.writeFile("JSConsumerFolder/" + fileName, response, (err) => {
+                if (err) {
+                    console.error(`Error saving file: ${err.message}`);
+                } else {
+                    console.log(`File saved successfully under: JSConsumerFolder/${fileName}`);
+                }
             });
         })
-        .then((message) => {
-            console.log(message);
-            main();
-        })
         .catch((error) => {
-            console.error(`Error downloading or saving file: ${error.message}`);
-            main();
-        })
-        .finally(() => {
-            rl.close();
+            console.error(`Error downloading file: ${error.message}`);
         });
 };
 
-const uploadFile = async (targetPath, localPath) => {
+const uploadFile = (targetPath, localPath) => {
 
     xfxInstancePromise.then((xfxInstance) => {
         const file = fs.createReadStream(localPath);
-        return new Promise((resolve, reject) => {
-
-            xfxInstance.uploadFile(targetPath, { file: file })
-                .then((response) => {
-                    resolve(response);
-                })
-                .catch((ex) => {
-                    reject(ex);
-                });
-        });
+        return xfxInstance.uploadFile(targetPath, { file: file });
     })
         .then((response) => {
-            console.log(
-                `.uploadFile() was called successfully. The response: ${response}`);
-            main();
+            console.log(`.uploadFile() was called successfully. The response: ${response}`);
         })
         .catch((ex) => {
-            console.error(`Exception occurred when calling .uploadFile(). ${ex}`);
-            main();
+            console.error("Exception occurred when calling .uploadFile(). ", ex);
         });
 };
 
-const deleteFile = async (path) => {
+const deleteFile = (path) => {
+
     xfxInstancePromise.then((xfxInstance) => xfxInstance.deleteFile(path))
         .then((response) => {
             console.log(`.deleteFile() was called successfully. The response: ${response}`);
-            main();
         })
         .catch((ex) => {
-            console.error(`Exception occurred when calling .deleteFile(). ${ex}`);
-            main();
-        })
+            console.error('Exception occurred when calling .deleteFile(). ', ex);
+        });
 };
 
 
-function main() {
-    console.log(
-        '1. Browse remote shared folder asynchronously\n2. Rename remote shared file or sub-folder asynchronously \n3. Download remote shared file asynchronously\n4. Upload local file to remote shared folder asynchronously\n5. Delete shared remote file asynchronously\n6. Exit'
-    );
-
-    question('Please enter your choice: ').then((choice) => {
-        const parsedchoice = parseInt(choice);
-
-        if (parsedchoice === 1) {
-            browseFiles();
-        } else if (parsedchoice === 2) {
-            renameFile();
-        } else if (parsedchoice === 3) {
-            question('Please enter the path of the file to download (SharedFolder/...): ')
-                .then((path) => {
-                    downloadFile(path);
-                })
-                .catch((error) => {
-                    console.error(`Error processing user input: ${error.message}`);
-                });
-        } else if (parsedchoice === 4) {
-            question('Please enter the path where you would like to upload to (SharedFolder/...): ')
-                .then((targetPath) => {
-                    question('Please enter the path of the file to upload (JSConsumerFolder/...): ')
-                        .then((localPath) => {
-                            uploadFile(targetPath, localPath);
-                        })
-                }).catch((error) => { console.error(`Error processing user input: ${error.message}`); });
-
-        } else if (parsedchoice === 5) {
-            question('Please enter the path of the file to delete (SharedFolder/...): ')
-                .then((path) => {
-                    deleteFile(path);
-                })
-                .catch((error) => {
-                    console.error(`Error processing user input: ${error.message}`);
-                });
-        } else if (parsedchoice === 6) {
-            console.log('Exiting... Thank you!');
-            rl.close();
-        } else {
-            console.log('Invalid choice. Please try again.');
-            main();
-        }
-    });
-};
-
-main();
-
-
-
-
-
-
+//Asynchronous calls
+browseFiles('SharedFolder/');
+renameFile('SharedFolder/pisa.jpg', 'newPisa.jpg');
+downloadFile('SharedFolder/SubSharedFolder/paris.jpg');
+uploadFile('SharedFolder/', 'JSConsumerFolder/colors.png');
+deleteFile('SharedFolder/testDelete.txt');
